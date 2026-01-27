@@ -14,6 +14,8 @@ import React, { useState } from "react";
 import { useRouter } from "expo-router";
 import { Feather, FontAwesome5 } from "@expo/vector-icons"; 
 import { StatusBar } from "expo-status-bar";
+import { useLoader } from "@/hooks/useLoader";
+import { registerUser } from "@/services/authService";
 
 const Register = () => {
   const router = useRouter();
@@ -23,7 +25,9 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleRegister = () => {
+  const { shoeLoader, hideLoader, isLoading } = useLoader();
+
+  const handleRegister = async () => {
     
     if (!name || !email || !password || !confirmPassword) {
       Alert.alert("Error", "Please fill in all fields");
@@ -32,6 +36,21 @@ const Register = () => {
     if (password !== confirmPassword) {
       Alert.alert("Error", "Passwords do not match");
       return;
+    }
+    shoeLoader()
+    try{
+      await registerUser(name, email, password)
+      Alert.alert("Success", "Account created successfully")
+      router.back()
+      setName("")
+      setEmail("")
+      setPassword("")
+      setConfirmPassword("")
+    }catch(error){
+      Alert.alert("Error", `Failed to create account \n${error}`)
+      console.log("Registration error:", error);
+    }finally{
+      hideLoader()
     }
     
     console.log("Registering user:", name, email);
