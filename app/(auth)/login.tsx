@@ -8,26 +8,40 @@ import {
   Platform,
   ScrollView,
   Alert,
-  ImageBackground, // 1. ImageBackground එක Import කරගන්න
+  ImageBackground, 
 } from "react-native";
 import React, { useState } from "react";
 import { useRouter } from "expo-router";
 import { Feather, FontAwesome5 } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
+import { useLoader } from "@/hooks/useLoader";
+import { login } from "@/services/authService";
 
 const Login = () => {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const { showLoader, hideLoader, isLoading} =useLoader()
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert("Error", "Please fill in all fields");
       return;
     }
     console.log("Logging in with:", email);
-    // router.replace("/home");
+    showLoader()
+    try {
+      await login(email, password)
+      router.replace("/home");
+    } catch (error) {
+      Alert.alert("Login Failed", `Invalid email or password \n${error}`);
+      console.error("Login error:", error);
+    }finally{
+      hideLoader()
+    }
+
+    
   };
 
   return (
