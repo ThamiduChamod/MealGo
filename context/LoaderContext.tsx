@@ -2,13 +2,13 @@ import  React, { createContext } from 'react'
 import { ActivityIndicator, View } from 'react-native';
 
 interface LoaderContextProps {
-    shoeLoader: () => void;
+    showLoader: () => void;
     hideLoader: () => void;
     isLoading: boolean;
 }
 
 export const LoaderContext = createContext<LoaderContextProps>({
-    shoeLoader: () => {},
+    showLoader: () => {},
     hideLoader: () => {},
     isLoading: false
 })
@@ -16,11 +16,11 @@ export const LoaderContext = createContext<LoaderContextProps>({
 export const LoaderProvider = ({ children }: { children: React.ReactNode }) => {
     const [isLoading, setIsLoading] = React.useState(false);
 
-    const shoeLoader = () => {setIsLoading(true);}
+    const showLoader = () => {setIsLoading(true);}
     const hideLoader = () => {setIsLoading(false);}
 
     return (
-        <LoaderContext.Provider value={{ shoeLoader, hideLoader, isLoading }}>
+        <LoaderContext.Provider value={{ showLoader, hideLoader, isLoading }}>
             {children}
 
             {isLoading && (

@@ -25,7 +25,7 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const { shoeLoader, hideLoader, isLoading } = useLoader();
+  const { showLoader, hideLoader, isLoading } = useLoader();
 
   const handleRegister = async () => {
     
@@ -37,15 +37,15 @@ const Register = () => {
       Alert.alert("Error", "Passwords do not match");
       return;
     }
-    shoeLoader()
+    showLoader()
     try{
       await registerUser(name, email, password)
       Alert.alert("Success", "Account created successfully")
-      router.back()
       setName("")
       setEmail("")
       setPassword("")
       setConfirmPassword("")
+      router.replace("/home");
     }catch(error){
       Alert.alert("Error", `Failed to create account \n${error}`)
       console.log("Registration error:", error);

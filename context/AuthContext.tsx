@@ -14,11 +14,11 @@ export const AuthContext = createContext<AuthContextProps>({
 })
 
 export const AuthProvider = ({children}: {children: ReactNode}) => {
-    const {shoeLoader, hideLoader, isLoading} = useLoader()
+    const {showLoader, hideLoader, isLoading} = useLoader()
     const [user, setUser] = useState<User | null>(null)
 
     useEffect(() => {
-        shoeLoader()
+        showLoader()
         const unsubscribe = onAuthStateChanged(auth, (authenticatedUser) => {
             setUser(authenticatedUser)
             hideLoader()
