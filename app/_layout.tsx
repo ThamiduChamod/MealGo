@@ -1,27 +1,25 @@
-import { View, Text } from "react-native"
-import React from "react"
-import { Slot } from "expo-router"
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
-import { LoaderProvider } from "@/context/LoaderContext"
-import { AuthProvider } from "@/context/AuthContext"
+import { View } from "react-native";
+import React from "react";
+import { Slot } from "expo-router";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { LoaderProvider } from "@/context/LoaderContext";
+import { AuthProvider } from "@/context/AuthContext";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
-// App.tsx ->
 const RootLayout = () => {
-  const insets = useSafeAreaInsets()
-
-  console.log(insets)
+  const insets = useSafeAreaInsets();
 
   return (
-    // <SafeAreaView className="flex-1">
-    <LoaderProvider>
-      <AuthProvider>
-        <View style={{ marginTop: insets.top, flex: 1 }}>
-          <Slot />
-        </View>
-      </AuthProvider>
-    </LoaderProvider>
-    // </SafeAreaView>
-  )
-}
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <LoaderProvider>
+        <AuthProvider>
+          <View style={{ marginTop: insets.top, flex: 1 }}>
+            <Slot />
+          </View>
+        </AuthProvider>
+      </LoaderProvider>
+    </GestureHandlerRootView>
+  );
+};
 
-export default RootLayout
+export default RootLayout;
