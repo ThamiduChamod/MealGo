@@ -1,52 +1,112 @@
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, FlatList, Dimensions } from 'react-native';
-import { Feather, Ionicons } from '@expo/vector-icons';
+import { Image, Text, View, StyleSheet, Dimensions, TouchableOpacity } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  interpolate
+} from "react-native-reanimated";
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 
-const screenWidth = Dimensions.get('window').width;
-const cardWidth = (screenWidth / 2) - 24; // පේළියකට දෙකක් පෙන්වීමට පළල ගණනය කිරීම
+const AnimatedImage = Animated.Image as any;
+const { width } = Dimensions.get('window');
+const cardWidth = (width / 2) - 20; // ටිකක් පළල වැඩි කළා Gap එක ලස්සන වෙන්න
+const IMAGE_SIZE = 150;
 
-const FoodCardMini = ({ item, onAdd }: any) => {
+const FoodCardMini = ({ item, onOpen }: any) => {
+
+  const rotateX = useSharedValue(5);
+  const rotateY = useSharedValue(-10);
+  const scale = useSharedValue(1);
+
+  // GestureDetector එක හරියටම වැඩ කරන්න නම් Pan එක use කරන විදිහ
+  const gesture = Gesture.Pan()
+    .onBegin(() => {
+      scale.value = withSpring(1.2, { damping: 10, stiffness: 100 });
+    })
+    .onUpdate((e) => {
+      // Finger එක move කරන පැත්තට image එක rotate වීම
+      rotateY.value = interpolate(e.translationX, [-100, 100], [-30, 30]);
+      rotateX.value = interpolate(e.translationY, [-100, 100], [30, -30]);
+    })
+    .onFinalize(() => {
+      // අත ඇරියම ආපහු මුල් තිබුණ 3D position එකට එනවා
+      scale.value = withSpring(1);
+      rotateX.value = withSpring(5);
+      rotateY.value = withSpring(-10);
+    });
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { perspective: 1000 },
+      { scale: scale.value },
+      { rotateX: `${rotateX.value}deg` },
+      { rotateY: `${rotateY.value}deg` },
+    ],
+  }));
+
   return (
-    <View 
-      style={{ width: cardWidth }} 
-      className="bg-white border-2 border-black rounded-[30px] p-3 mb-10 mx-2 shadow-sm relative mt-12"
-    >
-      {/* Floating Image - ප්‍රමාණය අඩු කර ඇත */}
-      <View className="items-center -mt-16 mb-2">
-        <Image
-          source={item.image}
-          className="w-32 h-24" 
-          resizeMode="contain"
-        />
-      </View>
+    <View style={[styles.cardContainer, { width: cardWidth }]} className="bg-white shadow-lg mx-2 mb-5">
+      
+      {/* 3D Image Section */}
+      <GestureDetector gesture={gesture}>
+        <View style={styles.imageContainer}>
+          <Image
+            source={require("../assets/images/cardBackground.png")}
+            style={styles.brushImage}
+            resizeMode="contain"
+          />
+          <Animated.View style={animatedStyle}>
+            <AnimatedImage
+              sharedTransitionTag={`image-${item.id}`} // 👈 මේකෙන් තමයි detail screen එකට පින්තූරය අරන් යන්නේ
+              source={item.image}
+              style={styles.foodImage}
+              resizeMode="contain"
+            />
+          </Animated.View>
+        </View>
+      </GestureDetector>
 
-      {/* Details */}
-      <View className="mt-1">
-        <Text className="text-lg font-black text-black leading-5" numberOfLines={1}>
+      {/* Details - Clickable Area */}
+      <TouchableOpacity 
+        activeOpacity={0.8} 
+        onPress={() => onOpen && onOpen(item)}
+        className="mt-4 px-3 pb-4"
+      >
+        <Text className="font-black text-black text-base" numberOfLines={1}>
           {item.name}
         </Text>
-        
-        <View className="flex-row items-center mt-1">
-          <Ionicons name="star" size={12} color="#FFC107" />
-          <Text className="text-gray-500 text-[10px] font-bold ml-1">{item.rating}</Text>
-        </View>
-      </View>
-
-      {/* Price and Add Button */}
-      <View className="flex-row justify-between items-center mt-4">
-        <View>
-          <Text className="text-[10px] font-black text-black">LKR {item.price}</Text>
-        </View>
-
-        <TouchableOpacity 
-          className="bg-black w-8 h-8 rounded-lg items-center justify-center"
-          onPress={onAdd}
-        >
-          <Feather name="plus" size={18} color="white" />
-        </TouchableOpacity>
-      </View>
+        <Text className="text-gray-400 font-bold mt-1 text-xs">
+          LKR {item.price}
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 };
 
-export default FoodCardMini
+const styles = StyleSheet.create({
+  cardContainer: {
+    borderRadius: 15,
+    marginTop: 50,
+    position: 'relative',
+  },
+  imageContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 100,
+    marginTop: -40,
+  },
+  brushImage: {
+    width: 145,
+    height: 145,
+    position: 'absolute',
+    opacity: 0.7,
+  },
+  foodImage: {
+    width: IMAGE_SIZE,
+    height: IMAGE_SIZE,
+    zIndex: 20,
+  },
+});
+
+export default FoodCardMini;
