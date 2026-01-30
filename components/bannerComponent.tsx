@@ -60,9 +60,24 @@ const AutoScrollBanner = () => {
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         keyExtractor={(item) => item.id}
-        // User අතින් scroll කළොත් index එක update කරන්න
+
+        getItemLayout={(data, index) => ({
+          length: BANNER_WIDTH,
+          offset: BANNER_WIDTH * index,
+          index,
+        })}
+
+        onScrollToIndexFailed={(info) => {
+          flatListRef.current?.scrollToOffset({
+            offset: info.averageItemLength * info.index,
+            animated: true,
+          });
+        }}
+
         onMomentumScrollEnd={(event) => {
-          const index = Math.round(event.nativeEvent.contentOffset.x / BANNER_WIDTH);
+          const index = Math.round(
+            event.nativeEvent.contentOffset.x / BANNER_WIDTH
+          );
           setCurrentIndex(index);
         }}
       />
