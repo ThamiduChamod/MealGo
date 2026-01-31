@@ -56,9 +56,10 @@ const CartScreen = () => {
   // const subtotal = DUMMY_CART_ITEMS.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const deliveryFee = 250; // උදාහරණයක්
   const total = subtotal + deliveryFee;
+  
 
   return (
-    <SafeAreaView className="flex-1 bg-white ">
+    <View className="flex-1 bg-white ">
       <StatusBar  />
       {/* Header */}
       <View className="flex-row items-center justify-between px-6 relative w-full top-0 py-4 border-b border-gray-100">
@@ -113,7 +114,7 @@ const CartScreen = () => {
           </TouchableOpacity>
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 
