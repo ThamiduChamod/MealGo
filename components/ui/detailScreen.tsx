@@ -26,20 +26,19 @@ const DetailScreen = () => {
   return (
     <View className="flex-1 bg-transparent">
       {/* Header Section */}
-      <SafeAreaView className="z-10">
-        <View className="flex-row justify-between items-center px-6 py-4 bg-transparent">
-          <TouchableOpacity 
-            onPress={() => router.back()} 
-            className="bg-gray-100 p-3 rounded-2xl"
-          >
-            <Ionicons name="chevron-back" size={24} color="black" />
+      <View className="flex-row justify-between items-center px-6 py-4 bg-transparent">
+        <TouchableOpacity 
+          onPress={() => router.back()} 
+          className="bg-gray-100 p-3 rounded-2xl"
+        >
+          <Ionicons name="chevron-back" size={24} color="black" />
+        </TouchableOpacity>
+
+        <TouchableOpacity className="bg-gray-100 p-3 rounded-2xl">
+          <Ionicons name="heart-outline" size={24} color="black" />
           </TouchableOpacity>
-          
-          <TouchableOpacity className="bg-gray-100 p-3 rounded-2xl">
-            <Ionicons name="heart-outline" size={24} color="black" />
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
+      </View>
+      
 
       <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
         {/* ✅ Image Section with Background Brush */}
