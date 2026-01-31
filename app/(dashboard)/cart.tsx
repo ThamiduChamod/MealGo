@@ -1,7 +1,9 @@
-import { View, Text, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, Image, TouchableOpacity, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import CartItem from '@/components/cartItem';
 
 // 💡 මෙතනට ඔයාගේ Theme එකේ පාටවල් දාගන්න
 const PRIMARY_COLOR = '#FF6347'; // උදා: Tomato Red / Orange
@@ -28,27 +30,42 @@ const DUMMY_CART_ITEMS = [
     name: 'Cheesy Fries',
     price: 450,
     quantity: 1,
-    image: require('@/assets/images/f1.png'), // තව image path එකක්
+    image: require('@/assets/images/b2.png'), // තව image path එකක්
   },
 ];
 
 const CartScreen = () => {
   const router = useRouter();
 
+  const [cartItems, setCartItems] = useState(DUMMY_CART_ITEMS);
+
+  // 💡 ඕනෑම Item එකක Quantity එක Update කරන Function එක
+  const updateQuantity = (id: string, newQuantity: number) => {
+    setCartItems(prevItems =>
+      prevItems.map(item =>
+        item.id === id ? { ...item, quantity: newQuantity } : item
+      )
+    );
+  };
+
+  // 💰 Total එක ගණනය කිරීම (හැමවෙලේම auto update වෙනවා)
+  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+
   // මුළු Cart එකේම එකතුව ගණනය කිරීම
-  const subtotal = DUMMY_CART_ITEMS.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  // const subtotal = DUMMY_CART_ITEMS.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const deliveryFee = 250; // උදාහරණයක්
   const total = subtotal + deliveryFee;
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-white ">
+      <StatusBar  />
       {/* Header */}
-      <View className="flex-row items-center justify-between px-6 py-4 border-b border-gray-200">
+      <View className="flex-row items-center justify-between px-6 relative w-full top-0 py-4 border-b border-gray-100">
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={28} color={TEXT_COLOR} />
         </TouchableOpacity>
-        <Text style={{ color: TEXT_COLOR }} className="text-2xl font-bold">Your Cart</Text>
-        <View className="w-7" /> {/* Spacer for centering title */}
+        <Text style={{ color: TEXT_COLOR }} className="text-xl font-bold">Cart</Text>
       </View>
 
       {/* Cart Items List */}
@@ -59,31 +76,12 @@ const CartScreen = () => {
         </View>
       ) : (
         <ScrollView className="flex-1 px-4 py-6">
-          {DUMMY_CART_ITEMS.map((item) => (
-            <View 
-              key={item.id} 
-              className="flex-row items-center bg-gray-50 rounded-2xl p-4 mb-4 shadow-sm"
-            >
-              {/* Item Image */}
-              <Image source={item.image} className="w-20 h-20 rounded-xl mr-4" resizeMode="cover" />
-
-              {/* Item Details */}
-              <View className="flex-1">
-                <Text style={{ color: TEXT_COLOR }} className="text-lg font-bold">{item.name}</Text>
-                <Text className="text-gray-600 text-base mt-1">LKR {item.price.toLocaleString()}</Text>
-              </View>
-
-              {/* Quantity Controls */}
-              <View className="flex-row items-center bg-white rounded-full p-1 shadow-sm">
-                <TouchableOpacity className="p-1">
-                  <Ionicons name="remove" size={20} color={PRIMARY_COLOR} />
-                </TouchableOpacity>
-                <Text style={{ color: TEXT_COLOR }} className="mx-3 text-base font-bold">{item.quantity}</Text>
-                <TouchableOpacity className="p-1">
-                  <Ionicons name="add" size={20} color={PRIMARY_COLOR} />
-                </TouchableOpacity>
-              </View>
-            </View>
+          {cartItems.map((item) => (
+            <CartItem 
+              key={item.id}
+              item={item}
+              onUpdate={(val) => updateQuantity(item.id, val)} // 👈 මෙන්න මේක අලුතින් දැම්මා
+            />
           ))}
         </ScrollView>
       )}
