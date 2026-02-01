@@ -1,6 +1,7 @@
 export const FOOD_DATA = [
     {
       id: '1',
+      cat: 1,
       name: 'Classic Beef',
       price: '1,250',
       description: 'Juicy beef patty with melted cheese and secret sauce.',
@@ -15,6 +16,7 @@ export const FOOD_DATA = [
     },
     {
       id: '2',
+      cat: 2,
       name: 'Spicy Zinger',
       price: '1,100',
       description: 'Extra crispy chicken with spicy mayo and lettuce.',
