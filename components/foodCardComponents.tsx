@@ -19,6 +19,8 @@ const FoodCardMini = ({ item, onOpen }: any) => {
   const rotateY = useSharedValue(-10);
   const scale = useSharedValue(1);
 
+  console.log(item.image);
+
   // GestureDetector එක හරියටම වැඩ කරන්න නම් Pan එක use කරන විදිහ
   const gesture = Gesture.Pan()
     .onBegin(() => {
@@ -59,7 +61,7 @@ const FoodCardMini = ({ item, onOpen }: any) => {
           <Animated.View style={animatedStyle}>
             <AnimatedImage
               sharedTransitionTag={`image-${item.id}`} // 👈 මේකෙන් තමයි detail screen එකට පින්තූරය අරන් යන්නේ
-              source={item.image}
+              source={{ uri: item.image }}
               style={styles.foodImage}
               resizeMode="contain"
             />
