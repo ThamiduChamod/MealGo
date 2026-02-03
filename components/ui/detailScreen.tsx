@@ -1,23 +1,40 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Image, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
 import { useGlobalSearchParams, useLocalSearchParams, useRouter } from 'expo-router';
 import Animated from 'react-native-reanimated';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { FOOD_DATA } from '@/constants/data';
+import { addToCart, findById } from '@/services/itemService';
+import { auth } from '@/services/firebase';
+import { useLoader } from '@/hooks/useLoader';
 
 const AnimatedImage = Animated.Image as any;
 
 const DetailScreen = () => {
-  const params = useLocalSearchParams();
-  const { id } = useGlobalSearchParams();
+  const { id } = useLocalSearchParams();
+  const [selectedItem, setSelectedItem] = useState<any>(null);
+  const { showLoader, hideLoader, isLoading} =useLoader()
 
-  const router = useRouter();
-  
-  // 1. ලැබුණු id එකට ගැලපෙන object එක FOOD_DATA එකෙන් හොයාගන්න
-  // id එක string එකක් විදිහට ලැබෙන නිසා, find() පාවිච්චි කරනවා
-  const selectedItem = FOOD_DATA.find((item) => item.id === id);
+  const router = useRouter()
 
-  // 2. දත්ත ලැබුණේ නැත්නම් error එකක් නොවී පෙන්වන්න (Safety check)
+  useEffect(() => {
+    if (id) {
+      findItem();
+    }
+  }, [id]); // id එක වෙනස් වුණොත් විතරක් run වෙයි
+
+  const findItem = async () => {
+    try {
+      showLoader
+      const item = await findById(id as string);
+      setSelectedItem(item);
+    } catch (error) {
+      hideLoader
+      console.error("Error fetching item:", error);
+    } finally {
+      hideLoader
+    }
+  };
   if (!selectedItem) {
     return <Text>Item not found!</Text>;
   }
@@ -50,7 +67,7 @@ const DetailScreen = () => {
           />
           <AnimatedImage
             sharedTransitionTag={`image-${id}`}
-            source= {selectedItem.image}
+            source= {{uri: selectedItem.image}}
             className="w-64 h-64"
             resizeMode="contain"
           />
@@ -75,9 +92,7 @@ const DetailScreen = () => {
           </View>
           <View className='py-6 bg-gray-100 rounded-2xl p-4 mt-6'>
             <Text className='text-3xl  font-medium text-[#141414cc]' > Description </Text>
-            <Text className="text-gray-500 mt-6 leading-6 text-base font-medium">
-              Crafted with our signature recipe and the finest ingredients. Experience the authentic taste of freshness in every bite.
-            </Text>
+            <Text className="text-gray-500 mt-6 leading-6 text-base font-medium">{selectedItem.description}</Text>
           </View>
           
           <View className='mb-20 mt-6 relative px-4 py-6 bg-gray-100 rounded-2xl'>
@@ -95,7 +110,7 @@ const DetailScreen = () => {
             <View className="z-10">
               <Text className='text-3xl font-medium text-[#141414cc] '>Ingredients</Text>
               
-              {selectedItem.ingredients.map((ingredient) => (
+              {selectedItem.ingredients.map((ingredient:any) => (
                 <View key={ingredient.id} className="flex-row items-center mt-4 ml-4">
                   <View className="h-2 w-2 rounded-full bg-[#141414cc] mr-4" />
                   <Text className="text-gray-500 font-bold uppercase tracking-wider">
@@ -118,6 +133,7 @@ const DetailScreen = () => {
       <View className="flex-row px-6 pt-4 pb-10 bg-white border-t border-gray-100 items-center">
         <TouchableOpacity 
           className="bg-gray-100 h-16 w-16 rounded-2xl items-center justify-center"
+          // onPress={handelCart}
         >
           <Feather name="shopping-cart" size={24} color="black" />
         </TouchableOpacity>
