@@ -38,6 +38,15 @@ const DetailScreen = () => {
   if (!selectedItem) {
     return <Text>Item not found!</Text>;
   }
+
+  const handelCart = async () => {
+    try {
+      await addToCart(selectedItem.id)
+    } catch (error) {
+      
+      
+    }
+  }
   
 
   return (
@@ -133,7 +142,7 @@ const DetailScreen = () => {
       <View className="flex-row px-6 pt-4 pb-10 bg-white border-t border-gray-100 items-center">
         <TouchableOpacity 
           className="bg-gray-100 h-16 w-16 rounded-2xl items-center justify-center"
-          // onPress={handelCart}
+          onPress={handelCart}
         >
           <Feather name="shopping-cart" size={24} color="black" />
         </TouchableOpacity>
