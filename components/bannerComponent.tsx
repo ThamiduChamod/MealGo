@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { FlatList, TouchableOpacity, View, Text, Dimensions,  } from "react-native";
 
 const { width } = Dimensions.get('window');
-const BANNER_WIDTH = width - 28; // දෙපැත්තෙන් padding අයින් කළ පසු පළල
+const BANNER_WIDTH = width - 35; // දෙපැත්තෙන් padding අයින් කළ පසු පළල
 
 const AD_DATA = [
   { id: '1', title: '50% OFF', subtitle: 'On your first order!', icon: 'gift', bg: 'bg-black', text: 'text-white' },
@@ -34,20 +34,47 @@ const AutoScrollBanner = () => {
   }, [currentIndex]);
 
   const renderBanner = ({ item }: { item: typeof AD_DATA[0] }) => (
-    <TouchableOpacity 
-      className={`${item.bg} rounded-md p-8 mr-4  flex-row items-center border-2 border-black`}
+    <TouchableOpacity
+      className={`${item.bg} rounded-md p-6 mr-4 flex-row items-center border-2 border-black`}
       style={{ width: BANNER_WIDTH, height: 120 }}
     >
-      <View className="flex-1"> 
-        <Text className={`${item.text} text-2xl font-black`}>{item.title}</Text>
-        <Text className={`${item.text === 'text-white' ? 'text-gray-400' : 'text-gray-600'} text-sm font-medium`}>
+      {/* LEFT CONTENT */}
+      <View className="flex-1 justify-between h-full">
+        <Text
+          numberOfLines={1}
+          className={`${item.text} text-2xl font-black`}
+        >
+          {item.title}
+        </Text>
+
+        <Text
+          numberOfLines={2}
+          className={`${
+            item.text === 'text-white'
+              ? 'text-gray-400'
+              : 'text-gray-600'
+          } text-sm font-medium`}
+        >
           {item.subtitle}
         </Text>
       </View>
-      <View className={`${item.text === 'text-white' ? 'bg-white/20' : 'bg-black/5'} w-20 h-20 rounded-full items-center justify-center`}>
-        <Feather name={item.icon as any} size={35} color={item.text === 'text-white' ? 'white' : 'black'} />
+
+      {/* ICON */}
+      <View
+        className={`${
+          item.text === 'text-white'
+            ? 'bg-white/20'
+            : 'bg-black/5'
+        } w-20 h-20 rounded-full items-center justify-center`}
+      >
+        <Feather
+          name={item.icon as any}
+          size={35}
+          color={item.text === 'text-white' ? 'white' : 'black'}
+        />
       </View>
     </TouchableOpacity>
+
   );
 
   return (
