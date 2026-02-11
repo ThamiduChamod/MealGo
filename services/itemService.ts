@@ -17,7 +17,7 @@ export const  findById =async (id: any) => {
     // if (data.userId !== user.uid) throw new Error('Unauthorized')
 
 
-    console.log("Fetched food data:", FOOD_data.data())
+    // console.log("Fetched food data:", FOOD_data.data())
     return {
         
         id: FOOD_data.id,
