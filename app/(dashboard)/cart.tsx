@@ -2,8 +2,14 @@ import { View, Text, ScrollView, Image, TouchableOpacity, StatusBar } from 'reac
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import CartItem from '@/components/cartItem';
+import { loadCartId } from '@/services/catService';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '@/services/firebase';
+import { findById } from '@/services/itemService';
+import { useAuth } from '@/hooks/useAuth';
+
 
 // 💡 මෙතනට ඔයාගේ Theme එකේ පාටවල් දාගන්න
 const PRIMARY_COLOR = '#FF6347'; // උදා: Tomato Red / Orange
@@ -33,29 +39,80 @@ const DUMMY_CART_ITEMS = [
     image: require('@/assets/images/b2.png'), // තව image path එකක්
   },
 ];
+type CartFood = {
+  cart_id: string;
+  id: string;
+  name: string;
+  price: number;
+  image: string;
+  description: string;
+  ingredients: any[];
+  quantity: number;
+};
+
+
+
 
 const CartScreen = () => {
   const router = useRouter();
+  const { user } = useAuth(); 
 
-  const [cartItems, setCartItems] = useState(DUMMY_CART_ITEMS);
+  const [cartItem, setCartItem] = useState({});
+  const [cartItems, setCartItems] = useState<CartFood[]>([]);
+  const [itemTotal, setItemTotal] = useState(Number)
+
+  
 
   // 💡 ඕනෑම Item එකක Quantity එක Update කරන Function එක
   const updateQuantity = (id: string, newQuantity: number) => {
     setCartItems(prevItems =>
       prevItems.map(item =>
-        item.id === id ? { ...item, quantity: newQuantity } : item
+        item.id === id ? { ...item, quantity: newQuantity} : item
       )
     );
+    subtotal(id)
   };
 
   // 💰 Total එක ගණනය කිරීම (හැමවෙලේම auto update වෙනවා)
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const subtotal = ((id:String) => {
+    cartItems.map(item =>{
+      
+      if(item.id === id){
+        console.log("find item")
+        console.log(Number(item.price))
+        const price = Number(item.price);
+        const quantity = Number(item.quantity);
+        setItemTotal(price*quantity)
+        return
+      }
+    })
+    
+  });
+
 
 
   // මුළු Cart එකේම එකතුව ගණනය කිරීම
   // const subtotal = DUMMY_CART_ITEMS.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const deliveryFee = 250; // උදාහරණයක්
-  const total = subtotal + deliveryFee;
+  const t = itemTotal
+  const total =  + deliveryFee;
+
+  useEffect(() => {
+    loadCart()
+  },[])
+
+  const loadCart = async ()=>{
+    const food = await  loadCartId()
+    console.log(typeof( food))
+    console.log(food)
+
+    setCartItems(food)
+
+  }
+  const handelCheckOut =async ()=>{
+    console.log("handel checkout")
+    
+  }
   
 
   return (
@@ -70,7 +127,7 @@ const CartScreen = () => {
       </View>
 
       {/* Cart Items List */}
-      {DUMMY_CART_ITEMS.length === 0 ? (
+      {cartItems.length === 0 ? (
         <View className="flex-1 items-center justify-center">
           <Ionicons name="cart-outline" size={80} color="gray" />
           <Text className="text-gray-500 text-lg mt-4">Your cart is empty!</Text>
@@ -79,7 +136,7 @@ const CartScreen = () => {
         <ScrollView className="flex-1 px-4 py-6">
           {cartItems.map((item) => (
             <CartItem 
-              key={item.id}
+              key={item.cart_id}
               item={item}
               onUpdate={(val) => updateQuantity(item.id, val)} // 👈 මෙන්න මේක අලුතින් දැම්මා
             />
@@ -88,11 +145,11 @@ const CartScreen = () => {
       )}
 
       {/* Cart Summary & Checkout */}
-      {DUMMY_CART_ITEMS.length > 0 && (
+      {cartItems.length > 0 && (
         <View className="bg-white p-6 shadow-lg rounded-t-3xl border-t border-gray-100">
           <View className="flex-row justify-between mb-3">
             <Text className="text-gray-600 text-base">Subtotal</Text>
-            <Text style={{ color: TEXT_COLOR }} className="text-base font-bold">LKR {subtotal.toLocaleString()}</Text>
+            <Text style={{ color: TEXT_COLOR }} className="text-base font-bold">LKR {itemTotal}</Text>
           </View>
           <View className="flex-row justify-between mb-4">
             <Text className="text-gray-600 text-base">Delivery</Text>
@@ -107,7 +164,7 @@ const CartScreen = () => {
           <TouchableOpacity 
             style={{ backgroundColor: PRIMARY_COLOR }} 
             className="flex-row items-center justify-center rounded-full py-4 mt-6 shadow-md"
-            onPress={() => { /* Checkout logic here */ }}
+            onPress={ handelCheckOut}
           >
             <Ionicons name="lock-closed" size={20} color="white" className="mr-2" />
             <Text className="text-white text-xl font-bold ml-2">Proceed to Checkout</Text>
