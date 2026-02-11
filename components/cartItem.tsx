@@ -20,7 +20,7 @@ const CartItem = ({ item, onUpdate }: { item: any, onUpdate: (val: number) => vo
   return (
     <View className="flex-row items-center bg-gray-50 rounded-3xl p-4 mb-4 shadow-sm border border-gray-100">
       {/* පින්තූරය */}
-      <Image source={item.image} className="w-20 h-20 rounded-2xl" resizeMode="cover" />
+      <Image source={{ uri: item.image }} className="w-20 h-20 rounded-2xl" resizeMode="cover" />
 
       {/* විස්තර */}
       <View className="flex-1 ml-4">
