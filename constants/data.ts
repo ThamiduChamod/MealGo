@@ -1,8 +1,15 @@
+import { useEffect } from "react";
+import { getAll } from "../services/homeService";
+
+
+export const food_data = getAll()
+
 export const FOOD_DATA = [
     {
       id: '1',
+      qty: 10,
       cat: 1,
-      name: 'Classic Beef',
+      name: 'Classic Beef Burger',
       price: '1,250',
       description: 'Juicy beef patty with melted cheese and secret sauce.',
       rating: '4.8 (120+)',
