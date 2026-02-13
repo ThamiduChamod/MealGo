@@ -6,7 +6,9 @@ import AddressScreen from '@/app/(ui)/address';
 import { useState } from 'react';
 import { auth } from '@/services/firebase';
 import * as ImagePicker from 'expo-image-picker';
-import { logout } from '@/services/authService';
+import { logout, updateName } from '@/services/authService';
+import { useLoader } from '@/hooks/useLoader';
+import { uploadProfilePicture } from '@/services/profileService';
 
 const ProfileScreen = () => {
   const router = useRouter();
@@ -14,20 +16,51 @@ const ProfileScreen = () => {
   const [showAddress, setShowAddress] = useState(false);
   const [editProfile, setEditProfile] = useState(false);
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
+  const { showLoader, hideLoader, isLoading} =useLoader()
+  
   
   const user = auth.currentUser
   if(!user){
     router.push('/(auth)/login')
   }
   const [newName, setNewName] = useState(user?.displayName || "");
-
-  
   console.log("user", user?.displayName, user?.email)
 
-  const saveProfile = () => {
+  
+
+  const saveProfile = async () => {
     console.log("Save Profile")
 
+    try {
+      showLoader()
+      if(newName.trim() != user?.displayName){
+        updateName(newName.trim())
+        Alert.alert("Success", "Profile Name Updated Successfully");
+        
+      }
     
+      if(profilePicture === null){
+        console.log("No profile picture selected, skipping update.")
+        return
+      }
+      const result = await uploadProfilePicture(profilePicture)
+      if(result){
+        console.log("Profile picture updated successfully.")
+        Alert.alert("Success", "Profile Updated Successfully");
+      }
+      
+      Alert.alert("Error", "Profile Updated Successfully but failed to update profile picture. Please try again.");
+
+    } catch (error) {
+      hideLoader()
+      Alert.alert("Error", "Failed to update profile and Profile Name. Please try again.");
+      console.error("Profile update error:", error);
+    }finally{
+      hideLoader()
+    }
+
+    
+
   }
 
   const pickImage = async () => {
@@ -188,7 +221,10 @@ const ProfileScreen = () => {
 
           {/* Logout Button */}
           <TouchableOpacity className="flex-row items-center py-4 mt-2"
-            onPress={logout}
+            onPress={() =>{
+              logout
+              router.push('/(auth)/login')
+            }}
           >
             <View className="bg-red-50 p-3 rounded-2xl mr-4">
               <Ionicons name="log-out-outline" size={22} color="#F44336" />
@@ -202,3 +238,5 @@ const ProfileScreen = () => {
 };
 
 export default ProfileScreen;
+
+
