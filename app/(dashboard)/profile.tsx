@@ -1,14 +1,95 @@
-import { View, Text, Image, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, Image, TouchableOpacity, ScrollView, Alert, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import AddressScreen from '@/app/(ui)/address';
 import { useState } from 'react';
+import { auth } from '@/services/firebase';
+import * as ImagePicker from 'expo-image-picker';
 
 const ProfileScreen = () => {
   const router = useRouter();
   const PRIMARY_COLOR = '#FF6347'; // Tomato Orange
   const [showAddress, setShowAddress] = useState(false);
+  const [editProfile, setEditProfile] = useState(false);
+  const [profilePicture, setProfilePicture] = useState<string | null>(null);
+  
+  const user = auth.currentUser
+  if(!user){
+    router.push('/(auth)/login')
+  }
+  const [newName, setNewName] = useState(user?.displayName || "");
+
+  
+  console.log("user", user?.displayName, user?.email)
+
+  const saveProfile = () => {
+    console.log("Save Profile")
+
+    
+  }
+
+  const pickImage = async () => {
+  // 1. Permission ඉල්ලන්න (Gallery සඳහා)
+  const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  
+  if (status !== 'granted') {
+    Alert.alert('Permission Denied', 'ගැලරියට යන්න අවසර ඕනේ මචං!');
+    return;
+  }
+
+  // 2. Options පෙන්වන්න (Camera or Gallery)
+  Alert.alert(
+  'Profile Photo',
+  'How would you like to select your picture?',
+  [
+    {
+      text: 'Cancel',
+      style: 'cancel',
+    },
+    {
+      text: 'Take Photo',
+      onPress: openCamera,
+    },
+    {
+      text: 'Choose from Gallery',
+      onPress: openGallery,
+    },
+    
+  ],
+  { cancelable: true } 
+);
+  };
+  const openGallery = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'], // කලින් මේක ImagePicker.MediaTypeOptions.Images
+      allowsEditing: true, // කොටු කරලා කපාගන්න (Crop) දෙන්න
+      aspect: [1, 1], // හතරැස් වෙන්න
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setProfilePicture(result.assets[0].uri);
+    }
+  };
+
+  const openCamera = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission Denied', 'කැමරාවට අවසර ඕනේ මචං!');
+      return;
+    }
+
+    let result = await ImagePicker.launchCameraAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setProfilePicture(result.assets[0].uri);
+    }
+  };
 
   // Profile Menu Items Array
   const menuItems = [
@@ -26,8 +107,19 @@ const ProfileScreen = () => {
       {/* Header */}
       <View className="px-6 py-4 flex-row justify-between items-center">
         <Text className="text-2xl font-black text-[#141414cc]">Profile</Text>
-        <TouchableOpacity className="bg-gray-100 p-2 rounded-full">
-          <Feather name="edit-3" size={20} color="black" />
+        <TouchableOpacity className="bg-gray-100 p-2 rounded-full"
+          onPress={() => {
+            if(editProfile){
+              saveProfile()
+              setEditProfile(false)
+            }else{
+              setEditProfile(true)
+            }
+            
+          }}
+        >
+          {editProfile ? <Text className="text-lg text-black mb-1">save</Text> : <Feather name="edit-3" size={20} color="black" />}
+          
         </TouchableOpacity>
       </View>
 
@@ -36,15 +128,29 @@ const ProfileScreen = () => {
         <View className="items-center my-8">
           <View className="relative">
             <Image 
-              source={{ uri: 'https://i.pravatar.cc/150?u=a042581f4e29026704d' }} 
+              source={{ uri: profilePicture || 'https://res.cloudinary.com/dhg6pf96x/image/upload/v1770986708/ec241b8218d6fa02be5e76dea9d0e3ce_hrnjsg.jpg' }} 
               className="w-32 h-32 rounded-full border-4 border-gray-50"
             />
             <View className="absolute bottom-0 right-2 bg-[#FF6347] p-2 rounded-full border-4 border-white">
-              <Ionicons name="camera" size={18} color="white" />
+              <TouchableOpacity
+                disabled={!editProfile}
+                onPress={() => {
+                  pickImage()
+                } }
+              >
+                <Ionicons name="camera" size={18} color="white" />
+              </TouchableOpacity>
             </View>
           </View>
-          <Text className="text-2xl font-bold mt-4 text-[#141414cc]">Saman Kumara</Text>
-          <Text className="text-gray-500 font-medium">saman.kumara@email.com</Text>
+          <TextInput
+            editable={editProfile}
+            value={newName}
+            className="text-2xl font-bold mt-4 text-[#141414cc]" 
+            onChangeText={setNewName}
+          />
+            
+            
+          <Text className="text-gray-500 font-medium">{user?.email}</Text>
         </View>
 
         {/* Menu Items Loop */}
