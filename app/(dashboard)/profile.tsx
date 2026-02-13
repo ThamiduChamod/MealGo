@@ -3,12 +3,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import AddressScreen from '@/app/(ui)/address';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { auth } from '@/services/firebase';
 import * as ImagePicker from 'expo-image-picker';
 import { logout, updateName } from '@/services/authService';
 import { useLoader } from '@/hooks/useLoader';
-import { uploadProfilePicture } from '@/services/profileService';
+import { getProfilePicture, uploadProfilePicture } from '@/services/profileService';
 
 const ProfileScreen = () => {
   const router = useRouter();
@@ -26,7 +26,17 @@ const ProfileScreen = () => {
   const [newName, setNewName] = useState(user?.displayName || "");
   console.log("user", user?.displayName, user?.email)
 
-  
+  useEffect(() => {
+    const fetchProfilePicture = async () => {
+      try {
+        const profileImage = await getProfilePicture();
+        setProfilePicture(profileImage || null);
+      } catch (error) {
+        console.error("Failed to fetch profile picture:", error);
+      }
+    };
+    fetchProfilePicture();
+  }, []);
 
   const saveProfile = async () => {
     console.log("Save Profile")

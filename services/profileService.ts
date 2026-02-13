@@ -56,3 +56,15 @@ const alreadyCreated = async () =>{
 
     return ref;
 }
+
+export const getProfilePicture = async () =>{
+    const user = auth.currentUser;
+    if(!user){
+        throw new Error("No user logged in")
+    }   
+    const profile = await alreadyCreated()
+    if(profile.empty){
+        return
+    }
+    return profile.docs[0].data().profileImage
+}
