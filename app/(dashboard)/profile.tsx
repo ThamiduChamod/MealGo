@@ -6,6 +6,7 @@ import AddressScreen from '@/app/(ui)/address';
 import { useState } from 'react';
 import { auth } from '@/services/firebase';
 import * as ImagePicker from 'expo-image-picker';
+import { logout } from '@/services/authService';
 
 const ProfileScreen = () => {
   const router = useRouter();
@@ -186,7 +187,9 @@ const ProfileScreen = () => {
           ))}
 
           {/* Logout Button */}
-          <TouchableOpacity className="flex-row items-center py-4 mt-2">
+          <TouchableOpacity className="flex-row items-center py-4 mt-2"
+            onPress={logout}
+          >
             <View className="bg-red-50 p-3 rounded-2xl mr-4">
               <Ionicons name="log-out-outline" size={22} color="#F44336" />
             </View>
