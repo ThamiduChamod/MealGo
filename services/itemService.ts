@@ -1,4 +1,4 @@
-import { addDoc, collection, doc, getDoc, getDocs, query } from "firebase/firestore"
+import { addDoc, collection, doc, getDoc, getDocs, query, where } from "firebase/firestore"
 import { auth, db } from "./firebase"
 
 
@@ -41,4 +41,22 @@ export const addToCart = async (food_id: any) =>{
         user_id: user.uid
     })
     
+}
+
+export const isAddCart = async (id: any) =>{
+    const user = auth.currentUser
+
+    if (!user) throw new Error('User not authenticated.')
+    
+    const q = query(
+            collection(db, "cart"),
+            where("food_id", "==", id)
+    )
+
+    const ref = await getDocs(q)
+
+    if(ref){
+        return true
+    }
+    false
 }
