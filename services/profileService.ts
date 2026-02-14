@@ -68,3 +68,51 @@ export const getProfilePicture = async () =>{
     }
     return profile.docs[0].data().profileImage
 }
+
+export const saveAddress = async (fullName: string, address: string, city: string, phone: string, addressType: string) => {
+    const user = auth.currentUser;
+    if (!user) {
+        throw new Error("No user logged in");
+    }
+    const isAVailable = await isSaveAddress(addressType)
+    
+    if(isAVailable.empty){
+        await addDoc(collection(db, 'userAddresses'), {
+            userId: user.uid,
+            fullName,
+            address,    
+            city,
+            phone,
+            addressType,
+            createdAt: new Date()
+        });
+
+        return
+    }
+
+    await updateDoc(isAVailable.docs[0].ref, {
+        fullName,
+        address,    
+        city,
+        phone,
+    })
+
+    return
+            
+    
+}
+
+const isSaveAddress =(addressType :string)=>{
+    const user = auth.currentUser;
+    if (!user) {
+        throw new Error("No user logged in");
+    }
+    const profile = query(
+        collection(db, "userAddresses"),
+        where("userId", "==", user.uid),
+        (where("addressType", "==", addressType) )
+    )
+    const ref = getDocs(profile)
+
+    return ref
+}
