@@ -1,12 +1,47 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { saveAddress } from '@/services/profileService';
+import { useLoader } from '@/hooks/useLoader';
 
 const AddressScreen = () => {
   const router = useRouter();
   const [addressType, setAddressType] = useState('Home'); // Home, Office, Other
+  const [fullName, setFullName] = useState("");
+  const [address, setAddress] = useState("");
+  const [phone, setPhone] = useState("");
+  const [city, setCity] = useState("");  
+  const { showLoader, hideLoader, isLoading} =useLoader()
+  
+  console.log("Address Type:", fullName);
+
+  const handleSavAddress = async () => {
+    // මෙතනට Save Address function එකක් implement කරන්න
+    console.log("Saving Address:", { fullName, address, city, phone, addressType });
+
+    if(!fullName || !address || !city || !phone){
+      Alert.alert("Error", "Please fill in all fields");
+      return;
+    }
+
+    try {
+      showLoader()
+      await saveAddress(fullName, address, city, phone, addressType)  
+      Alert.alert("Success", "Address Saved Successfully");
+    } catch (error) {
+      hideLoader()
+      Alert.alert("Error", "Failed to save address: " );
+      console.log("Failed to save address:", error)
+    }finally{
+      hideLoader()
+    }
+    
+    
+  }
+
+
 
   // ⌨️ Custom Input Component for reuse
   const AddressInput = ({ label, placeholder, icon, keyboardType = 'default' }: any) => (
@@ -65,11 +100,69 @@ const AddressScreen = () => {
           </View>
 
           {/* Input Fields */}
-          <View className="mt-8 space-y-4">
-            <AddressInput label="Full Name" placeholder="Saman Kumara" icon="person-outline" />
-            <AddressInput label="Street Address" placeholder="123, Galle Road" icon="location-outline" />
-            <AddressInput label="City" placeholder="Colombo" icon="business-outline" />
-            <AddressInput label="Phone Number" placeholder="+94 77 123 4567" icon="call-outline" keyboardType="phone-pad" />
+          <View className="mt-8">
+            {/* Full Name */}
+            <View className="mb-5">
+              <Text className="text-gray-400 font-bold mb-2 ml-1">Full Name</Text>
+              <View className="flex-row items-center bg-gray-50 border border-gray-100 rounded-2xl px-4 py-1">
+                <Ionicons name="person-outline" size={20} color="#FF6347" />
+                <TextInput
+                  value={fullName}
+                  onChangeText={setFullName}
+                  placeholder="Saman Kumara"
+                  className="flex-1 ml-3 py-3 text-gray-700 font-medium"
+                  placeholderTextColor="#ccc"
+                />
+              </View>
+            </View>
+
+            {/* Street Address */}
+            <View className="mb-5">
+              <Text className="text-gray-400 font-bold mb-2 ml-1">Street Address</Text>
+              <View className="flex-row items-center bg-gray-50 border border-gray-100 rounded-2xl px-4 py-1">
+                <Ionicons name="location-outline" size={20} color="#FF6347" />
+                <TextInput
+                  value={address}
+                  onChangeText={setAddress}
+                  placeholder="123, Galle Road"
+                  className="flex-1 ml-3 py-3 text-gray-700 font-medium"
+                  placeholderTextColor="#ccc"
+                />
+              </View>
+            </View>
+
+            {/* City */}
+            <View className="mb-5">
+              <Text className="text-gray-400 font-bold mb-2 ml-1">City</Text>
+              <View className="flex-row items-center bg-gray-50 border border-gray-100 rounded-2xl px-4 py-1">
+                <Ionicons name="business-outline" size={20} color="#FF6347" />
+                <TextInput
+                  value={city}
+                  onChangeText={setCity}
+                  placeholder="Colombo"
+                  className="flex-1 ml-3 py-3 text-gray-700 font-medium"
+                  placeholderTextColor="#ccc"
+                />
+              </View>
+            </View>
+
+            {/* Phone */}
+            <View className="mb-5">
+              <Text className="text-gray-400 font-bold mb-2 ml-1">Phone Number</Text>
+              <View className="flex-row items-center bg-gray-50 border border-gray-100 rounded-2xl px-4 py-1">
+                <Ionicons name="call-outline" size={20} color="#FF6347" />
+                <TextInput
+                  value={phone}
+                  onChangeText={setPhone}
+                  placeholder="+94 77 123 4567"
+                  keyboardType="phone-pad"
+                  className="flex-1 ml-3 py-3 text-gray-700 font-medium"
+                  placeholderTextColor="#ccc"
+                />
+              </View>
+            </View>
+
+
           </View>
 
           <View className="h-10" />
@@ -80,7 +173,10 @@ const AddressScreen = () => {
       <View className="px-6 py-6 border-t border-gray-100">
         <TouchableOpacity 
           className="bg-orange-500 py-5 rounded-[25px] items-center shadow-lg shadow-orange-300"
-          onPress={() => router.back()}
+          onPress={() => {
+            handleSavAddress(); // මෙතනට Save Address function එකක් implement කරන්න
+            // router.back()
+          }}
         >
           <Text className="text-white text-lg font-black uppercase tracking-widest">Save Address</Text>
         </TouchableOpacity>
