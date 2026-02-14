@@ -9,6 +9,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '@/services/firebase';
 import { findById } from '@/services/itemService';
 import { useAuth } from '@/hooks/useAuth';
+import CheckoutScreen from '../(ui)/CheckoutScreen';
 
 
 // 💡 මෙතනට ඔයාගේ Theme එකේ පාටවල් දාගන්න
@@ -112,6 +113,7 @@ const CartScreen = () => {
   const handelCheckOut =async ()=>{
     console.log("handel checkout")
     
+
   }
   
 
@@ -164,7 +166,16 @@ const CartScreen = () => {
           <TouchableOpacity 
             style={{ backgroundColor: PRIMARY_COLOR }} 
             className="flex-row items-center justify-center rounded-full py-4 mt-6 shadow-md"
-            onPress={ handelCheckOut}
+            onPress={() => {
+              if (cartItems.length === 0) return;
+              router.push({
+                pathname: "/(ui)/CheckoutScreen",
+                params: { 
+                  subtotal: itemTotal,
+                  delivery: deliveryFee,
+                  total: total 
+              }
+            })}}
           >
             <Ionicons name="lock-closed" size={20} color="white" className="mr-2" />
             <Text className="text-white text-xl font-bold ml-2">Proceed to Checkout</Text>
