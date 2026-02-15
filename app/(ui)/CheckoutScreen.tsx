@@ -45,7 +45,8 @@ const CheckoutScreen = () => {
   const conformOrder = async () => {
     try {
       showLoader();
-      console.log("Selected Address ID:", selectedAddress.id);
+      // console.log("Selected Address ID:", selectedAddress.id);
+      console.log("Cart Items for Order:", cartItems);
       const isPlaced = await placeOrder(selectedAddress.id, cartItems);
       if (!isPlaced) {
         hideLoader();
