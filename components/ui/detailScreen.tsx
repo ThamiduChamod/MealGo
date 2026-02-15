@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, TouchableOpacity, ScrollView, SafeAreaView } from 'react-native';
+import { View, Text, Image, TouchableOpacity, ScrollView, SafeAreaView, Alert } from 'react-native';
 import { useGlobalSearchParams, useLocalSearchParams, useRouter } from 'expo-router';
 import Animated from 'react-native-reanimated';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { FOOD_DATA } from '@/constants/data';
-import { addToCart, findById } from '@/services/itemService';
+import { addToCart, findById, isAddCart } from '@/services/itemService';
 import { auth } from '@/services/firebase';
 import { useLoader } from '@/hooks/useLoader';
 
@@ -14,6 +14,7 @@ const DetailScreen = () => {
   const { id } = useLocalSearchParams();
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const { showLoader, hideLoader, isLoading} =useLoader()
+  const [cart, setCard] = useState<boolean>(true)
 
   const router = useRouter()
 
@@ -28,6 +29,7 @@ const DetailScreen = () => {
       showLoader
       const item = await findById(id as string);
       setSelectedItem(item);
+      isAdd(id as String)
     } catch (error) {
       hideLoader
       console.error("Error fetching item:", error);
@@ -35,16 +37,27 @@ const DetailScreen = () => {
       hideLoader
     }
   };
+
+  const isAdd = async (id: String) =>{
+      const isAdd = await isAddCart(id)
+      setCard(isAdd||false)
+  }
+
   if (!selectedItem) {
     return <Text>Item not found!</Text>;
   }
 
-  const handelCart = async () => {
+  const handelCart =  async () => {
+    console.log("cart button click")
+    if(cart){
+      Alert.alert("Already in Cart", "This item is already in your cart.");
+      return
+    }
     try {
       await addToCart(selectedItem.id)
+      Alert.alert("Success", "Item added to cart! 🎉");
     } catch (error) {
-      
-      
+      Alert.alert("Error", "Failed to add item to cart.");
     }
   }
   
@@ -143,6 +156,7 @@ const DetailScreen = () => {
         <TouchableOpacity 
           className="bg-gray-100 h-16 w-16 rounded-2xl items-center justify-center"
           onPress={handelCart}
+          
         >
           <Feather name="shopping-cart" size={24} color="black" />
         </TouchableOpacity>
