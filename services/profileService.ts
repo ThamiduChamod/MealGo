@@ -128,7 +128,8 @@ export const getUserAddress = async () =>{
     )
     const addressDocs = await getDocs(address)
     if(addressDocs.empty){
-        throw new Error("No address found for the given address type");
+        return []
     }
     const data = addressDocs.docs.map(doc =>({id: doc.id, ...doc.data()}))
-    return data}
+    return data
+}
