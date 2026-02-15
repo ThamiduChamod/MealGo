@@ -16,30 +16,6 @@ import CheckoutScreen from '../(ui)/CheckoutScreen';
 const PRIMARY_COLOR = '#FF6347'; // උදා: Tomato Red / Orange
 const TEXT_COLOR = '#141414cc'; // Dark text color
 
-// Dummy Cart Data (පස්සේ ඔයාට මේක Redux හෝ Context API එකකින් manage කරන්න පුළුවන්)
-const DUMMY_CART_ITEMS = [
-  {
-    id: '1',
-    name: 'Classic Beef Burger',
-    price: 1250,
-    quantity: 1,
-    image: require('@/assets/images/b2.png'), // ඔයාගේ image path එක
-  },
-  {
-    id: '2',
-    name: 'Spicy Zinger Burger',
-    price: 1100,
-    quantity: 2,
-    image: require('@/assets/images/b2.png'), // ඔයාගේ image path එක
-  },
-  {
-    id: '3',
-    name: 'Cheesy Fries',
-    price: 450,
-    quantity: 1,
-    image: require('@/assets/images/b2.png'), // තව image path එකක්
-  },
-];
 type CartFood = {
   cart_id: string;
   id: string;
@@ -57,59 +33,45 @@ type CartFood = {
 const CartScreen = () => {
   const router = useRouter();
   const { user } = useAuth(); 
+  const [deliveryFee, setDeliveryFee] = useState(250);
 
   const [cartItem, setCartItem] = useState({});
   const [cartItems, setCartItems] = useState<CartFood[]>([]);
-  const [itemTotal, setItemTotal] = useState(Number)
+  const [itemTotal, setItemTotal] = useState(0)
+
 
   
 
-  // 💡 ඕනෑම Item එකක Quantity එක Update කරන Function එක
-  const updateQuantity = (id: string, newQuantity: number) => {
-    setCartItems(prevItems =>
-      prevItems.map(item =>
-        item.id === id ? { ...item, quantity: newQuantity} : item
-      )
-    );
-    subtotal(id)
+  // 💰 මුළු Cart එකේම එකතුව ගණනය කරන function එක
+  const calculateSubtotal = (items: CartFood[]) => {
+    const total = items.reduce((sum, item) => {
+      return sum + (Number(item.price) * Number(item.quantity));
+    }, 0);
+    setItemTotal(total);
   };
 
-  // 💰 Total එක ගණනය කිරීම (හැමවෙලේම auto update වෙනවා)
-  const subtotal = ((id:String) => {
-    cartItems.map(item =>{
-      
-      if(item.id === id){
-        console.log("find item")
-        console.log(Number(item.price))
-        const price = Number(item.price);
-        const quantity = Number(item.quantity);
-        setItemTotal(price*quantity)
-        return
-      }
-    })
-    
-  });
-
-
-
-  // මුළු Cart එකේම එකතුව ගණනය කිරීම
-  // const subtotal = DUMMY_CART_ITEMS.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const deliveryFee = 250; // උදාහරණයක්
-  const t = itemTotal
-  const total =  + deliveryFee;
+  // 💡 Quantity එක Update කරන කොට subtotal එකත් update කරමු
+  const updateQuantity = (id: string, newQuantity: number) => {
+    setCartItems(prevItems => {
+      const updatedItems = prevItems.map(item =>
+        item.id === id ? { ...item, quantity: newQuantity } : item
+      );
+      // අලුත් items list එක පාවිච්චි කරලා total එක හදන්න
+      calculateSubtotal(updatedItems);
+      return updatedItems;
+    });
+  };
 
   useEffect(() => {
     loadCart()
   },[])
 
-  const loadCart = async ()=>{
-    const food = await  loadCartId()
-    console.log(typeof( food))
-    console.log(food)
-
-    setCartItems(food)
-
-  }
+  const loadCart = async () => {
+    const food = await loadCartId();
+    setCartItems(food);
+    // මුලින්ම දත්ත ටික එද්දී total එක හදන්න
+    calculateSubtotal(food);
+  };
   const handelCheckOut =async ()=>{
     console.log("handel checkout")
     
@@ -155,11 +117,11 @@ const CartScreen = () => {
           </View>
           <View className="flex-row justify-between mb-4">
             <Text className="text-gray-600 text-base">Delivery</Text>
-            <Text style={{ color: TEXT_COLOR }} className="text-base font-bold">LKR {deliveryFee.toLocaleString()}</Text>
+            <Text style={{ color: TEXT_COLOR }} className="text-base font-bold">LKR {deliveryFee}</Text>
           </View>
           <View className="flex-row justify-between items-center border-t border-gray-200 pt-4">
             <Text style={{ color: TEXT_COLOR }} className="text-xl font-extrabold">Total</Text>
-            <Text style={{ color: PRIMARY_COLOR }} className="text-2xl font-extrabold">LKR {total.toLocaleString()}</Text>
+            <Text style={{ color: PRIMARY_COLOR }} className="text-2xl font-extrabold">LKR {itemTotal + deliveryFee}</Text>
           </View>
 
           {/* Checkout Button */}
@@ -170,10 +132,12 @@ const CartScreen = () => {
               if (cartItems.length === 0) return;
               router.push({
                 pathname: "/(ui)/CheckoutScreen",
-                params: { 
+                params: {
+                  Foods: JSON.stringify(cartItems),
                   subtotal: itemTotal,
+                  qty: cartItems.reduce((sum, item) => sum + item.quantity, 0),
                   delivery: deliveryFee,
-                  total: total 
+                  total: itemTotal + deliveryFee
               }
             })}}
           >
