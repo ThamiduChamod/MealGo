@@ -1,4 +1,4 @@
-import { addDoc, collection, doc, getDoc, getDocs, query, where } from "firebase/firestore"
+import { addDoc, collection, doc, getDoc, getDocs, query, updateDoc, where } from "firebase/firestore"
 import { auth, db } from "./firebase"
 
 
@@ -55,8 +55,29 @@ export const isAddCart = async (id: any) =>{
 
     const ref = await getDocs(q)
 
-    if(ref){
-        return true
+    if(ref.empty){
+        return false
     }
-    false
+    return true
+}
+
+export const quantityUpdate = async (id: any, quantity: number) =>{
+    const user = auth.currentUser
+    if (!user) throw new Error('User not authenticated.')
+    
+    const ref = await getDoc(doc(db, "FOOD_DATA", id))
+
+    if(!ref.exists()) throw new Error('Item not found.')
+    
+    const docRef = ref.data()
+
+    if(docRef.quantity < quantity || docRef.quantity <= 0) throw new Error('Not enough stock available.')
+
+    const newQTY = docRef.quantity - quantity
+
+    await updateDoc(doc(db, "FOOD_DATA", id), {
+        quantity: newQTY
+    })
+
+    return true
 }
