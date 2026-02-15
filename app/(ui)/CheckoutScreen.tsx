@@ -1,26 +1,90 @@
 // app/checkout.tsx (හෝ ඔයාගේ path එක)
-import React, { useState } from 'react';
+import React, { use, useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-
+import { getUserAddress } from '@/services/profileService';
+import { placeOrder } from '@/services/orderService';
+type CartFood = {
+  cart_id: string;
+  id: string;
+  name: string;
+  price: number;
+  image: string;
+  description: string;
+  ingredients: any[];
+  quantity: number;
+};
 const CheckoutScreen = () => {
   const router = useRouter();
-  const { total } = useLocalSearchParams(); // Cart එකෙන් එවන දත්ත
+  const { total, qty,  subtotal, Foods } = useLocalSearchParams(); // Cart එකෙන් එවන දත්ත
+  const QTY = Number(qty) || 0;
   
   const [paymentMethod, setPaymentMethod] = useState('COD'); // 'COD' හෝ 'CARD'
-  const [selectedAddress, setSelectedAddress] = useState('Home'); // දැනට dummy
-  // 1. මුලින්ම State එකක් දාගන්න තෝරපු වර්ගය තියාගන්න
-const [selectedType, setSelectedType] = useState('Home'); // Home, Office, Other
 
-// ... UI එක ඇතුළත ...
+  const [selectedAddress, setSelectedAddress] = useState<any>([]); // දැනට dummy
+  const [address, setAddress] = useState<any>([]); // Firestore එකෙන් ලැබෙන address data
+  const [selectedType, setSelectedType] = useState('Home'); // Home, Office, Other
+  const [cartItems, setCartItems] = useState<CartFood[]>([]);
 
-  const placeOrder = async () => {
-    // 1. මෙතනදී තමයි Firestore එකට Order එක සේව් කරන්නේ
-    // 2. Order එක සේව් වුණාට පස්සේ Success screen එකට යනවා
+  useEffect(() => {
+    if (Foods) {
+      try {
+        // 💡 String එක ආපහු Object/Array එකක් කරමු
+        const parsedFoods = JSON.parse(Foods as string);
+        setCartItems(parsedFoods);
+        console.log(parsedFoods)
+      } catch (e) {
+        console.error("Error parsing foods:", e);
+      }
+    }
+  }, [Foods]);
+
+  const conformOrder = async () => {
+    console.log("Selected Address ID:", selectedAddress.id);
+    placeOrder(selectedAddress.id, cartItems);
     Alert.alert("Success", "Your order has been placed! 🎉", [
-      { text: "OK", onPress: () => router.replace('/home') }
+      { text: "OK", onPress: () => router.replace('/') }
     ]);
+  };
+
+  useEffect(() => {
+    const initializeCheckout = async () => {
+    const userAddress = await getUserAddress();
+    
+    if (userAddress.length === 0) {
+      Alert.alert("No Address Found", "Please add a delivery address to proceed.", [
+        { text: "Add Address", onPress: () => router.push('/address') }
+      ]);
+      return;
+    }
+
+    setAddress(userAddress);
+
+    const defaultAddress = userAddress.find((add: any) => add.addressType === 'Home');
+    
+    if (defaultAddress) {
+      setSelectedAddress(defaultAddress);
+    } else if (userAddress.length > 0) {
+      setSelectedAddress(userAddress[0]);
+      console.log("adddddddddddddddddddddddddd",userAddress[0])
+      // setSelectedType(userAddress[0].data().addressType);
+    }
+  };
+
+  initializeCheckout();
+
+  }, [])
+
+  const handleTypeChange = (type: string) => {
+    setSelectedType(type);
+    const found = address.find((add: any) => add.addressType === type);
+    if (found) {
+      setSelectedAddress(found);
+    } else {
+      // ඒ වර්ගයේ ඇඩ්‍රස් එකක් නැත්නම් හිස් කරන්න හෝ මැසේජ් එකක් දෙන්න
+      setSelectedAddress({});
+    }
   };
 
   return (
@@ -51,7 +115,10 @@ const [selectedType, setSelectedType] = useState('Home'); // Home, Office, Other
           {['Home', 'Office', 'Other'].map((type) => (
             <TouchableOpacity 
               key={type}
-              onPress={() => setSelectedType(type)}
+              onPress={async () => {
+                setSelectedType(type)
+                handleTypeChange(type)
+              }}
               className={`px-6 py-2 rounded-full mr-2 border ${
                 selectedType === type ? 'bg-orange-500 border-orange-500' : 'bg-white border-gray-200'
               }`}
@@ -78,12 +145,12 @@ const [selectedType, setSelectedType] = useState('Home'); // Home, Office, Other
               {selectedType} Address
             </Text>
             <Text className="text-gray-500 leading-5">
-              Name
+              {selectedAddress.fullName ? selectedAddress.fullName : "No address found for this type."}
             </Text>
             <Text className="text-gray-500 leading-5">
-              123, Galle Road,{"\n"}Colombo 03.
+              {selectedAddress.address},{"\n"}{selectedAddress.city}
             </Text>
-            <Text className="text-gray-500 mt-1">+94 77 123 4567</Text>
+            <Text className="text-gray-500 mt-1">{selectedAddress.phone}</Text>
           </View>
         </View>
       </View>
@@ -119,7 +186,7 @@ const [selectedType, setSelectedType] = useState('Home'); // Home, Office, Other
 
       {/* Confirm Button */}
       <TouchableOpacity 
-        onPress={placeOrder}
+        onPress={conformOrder}
         className="bg-orange-500 py-5 rounded-[25px] items-center bottom-0 justify-center mb-10"
       >
         <Text className="text-white text-xl font-black uppercase tracking-widest">Confirm Order</Text>
