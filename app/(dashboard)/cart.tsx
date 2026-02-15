@@ -10,6 +10,7 @@ import { auth } from '@/services/firebase';
 import { findById } from '@/services/itemService';
 import { useAuth } from '@/hooks/useAuth';
 import CheckoutScreen from '../(ui)/CheckoutScreen';
+import { useLoader } from '@/hooks/useLoader';
 
 
 // 💡 මෙතනට ඔයාගේ Theme එකේ පාටවල් දාගන්න
@@ -38,6 +39,7 @@ const CartScreen = () => {
   const [cartItem, setCartItem] = useState({});
   const [cartItems, setCartItems] = useState<CartFood[]>([]);
   const [itemTotal, setItemTotal] = useState(0)
+  const { showLoader, hideLoader, isLoading } = useLoader();
 
 
   
@@ -67,10 +69,18 @@ const CartScreen = () => {
   },[])
 
   const loadCart = async () => {
-    const food = await loadCartId();
-    setCartItems(food);
-    // මුලින්ම දත්ත ටික එද්දී total එක හදන්න
-    calculateSubtotal(food);
+    try {
+      showLoader();
+      const food = await loadCartId();
+      setCartItems(food);
+      calculateSubtotal(food);
+    } catch (error) {
+      hideLoader();
+      console.error("Error loading cart:", error);
+    }finally {
+      hideLoader();
+    }
+    
   };
   const handelCheckOut =async ()=>{
     console.log("handel checkout")
