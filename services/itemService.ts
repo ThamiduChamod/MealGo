@@ -1,4 +1,4 @@
-import { addDoc, collection, doc, getDoc, getDocs, query, updateDoc, where } from "firebase/firestore"
+import { addDoc, collection, doc, getDoc, getDocs, increment, query, updateDoc, where } from "firebase/firestore"
 import { auth, db } from "./firebase"
 
 
@@ -62,22 +62,30 @@ export const isAddCart = async (id: any) =>{
 }
 
 export const quantityUpdate = async (id: any, quantity: number) =>{
-    const user = auth.currentUser
-    if (!user) throw new Error('User not authenticated.')
+    console.log(`quantityUpdate called for ID: ${id}, Order Qty: ${quantity}`);
     
-    const ref = await getDoc(doc(db, "FOOD_DATA", id))
+    const user = auth.currentUser;
+    if (!user) throw new Error('User not authenticated.');
 
-    if(!ref.exists()) throw new Error('Item not found.')
-    
-    const docRef = ref.data()
+    try {
+        const itemRef = doc(db, "FOOD_DATA", id);
+        const snapshot = await getDoc(itemRef);
 
-    if(docRef.quantity < quantity || docRef.quantity <= 0) throw new Error('Not enough stock available.')
+        if (!snapshot.exists()) throw new Error('Item not found.');
 
-    const newQTY = docRef.quantity - quantity
+        const currentStock = snapshot.data().quantity;
 
-    await updateDoc(doc(db, "FOOD_DATA", id), {
-        quantity: newQTY
-    })
+        if (currentStock < quantity) {
+            throw new Error(`Only ${currentStock} items left in stock.`);
+        }
 
-    return true
+        await updateDoc(itemRef, {
+            quantity: increment(-quantity) 
+        });
+        console.log("Quantity updated successfully for item ID:", id);
+        return true;
+    } catch (error: any) {
+        console.error("Quantity Update Error:", error.message);
+        throw new Error(error.message);
+    }
 }
