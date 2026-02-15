@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { getUserAddress } from '@/services/profileService';
 import { placeOrder } from '@/services/orderService';
+import { useLoader } from '@/hooks/useLoader';
 type CartFood = {
   cart_id: string;
   id: string;
@@ -26,6 +27,7 @@ const CheckoutScreen = () => {
   const [address, setAddress] = useState<any>([]); // Firestore එකෙන් ලැබෙන address data
   const [selectedType, setSelectedType] = useState('Home'); // Home, Office, Other
   const [cartItems, setCartItems] = useState<CartFood[]>([]);
+  const { showLoader, hideLoader, isLoading } = useLoader();
 
   useEffect(() => {
     if (Foods) {
@@ -41,11 +43,25 @@ const CheckoutScreen = () => {
   }, [Foods]);
 
   const conformOrder = async () => {
-    console.log("Selected Address ID:", selectedAddress.id);
-    placeOrder(selectedAddress.id, cartItems);
-    Alert.alert("Success", "Your order has been placed! 🎉", [
-      { text: "OK", onPress: () => router.replace('/') }
-    ]);
+    try {
+      showLoader();
+      console.log("Selected Address ID:", selectedAddress.id);
+      const isPlaced = await placeOrder(selectedAddress.id, cartItems);
+      if (!isPlaced) {
+        hideLoader();
+        Alert.alert("Error", "Failed to place the order. Please try again.");
+        return;
+      }
+      Alert.alert("Success", "Your order has been placed! 🎉", [
+        { text: "OK", onPress: () => router.replace('/') }
+      ]);
+    } catch (error) {
+      hideLoader();
+      Alert.alert("Error", "An error occurred while placing the order.");
+    } finally {
+      hideLoader();
+    }
+    
   };
 
   useEffect(() => {
@@ -54,7 +70,8 @@ const CheckoutScreen = () => {
     
     if (userAddress.length === 0) {
       Alert.alert("No Address Found", "Please add a delivery address to proceed.", [
-        { text: "Add Address", onPress: () => router.push('/address') }
+        { text: "Add Address", onPress: () => router.push('/address') },
+        { text: "Cancel", onPress: () => router.push('/cart') }
       ]);
       return;
     }
