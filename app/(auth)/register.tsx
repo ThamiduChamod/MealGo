@@ -41,10 +41,6 @@ const Register = () => {
     try{
       await registerUser(name, email, password)
       Alert.alert("Success", "Account created successfully")
-      setName("")
-      setEmail("")
-      setPassword("")
-      setConfirmPassword("")
       router.replace("/home");
     }catch(error){
       Alert.alert("Error", `Failed to create account \n${error}`)
@@ -52,9 +48,6 @@ const Register = () => {
     }finally{
       hideLoader()
     }
-    
-    console.log("Registering user:", name, email);
-    // මෙතැනදී Firebase createUserWithEmailAndPassword function එක පාවිච්චි කරන්න පුළුවන්
   };
 
   return (

@@ -23,6 +23,7 @@ export const registerUser = async (name: string, email: string, password: string
         role: "USER",
         createdAt: serverTimestamp()
     })
+    await signInWithEmailAndPassword(auth, email, password)
     return user
 }
 
