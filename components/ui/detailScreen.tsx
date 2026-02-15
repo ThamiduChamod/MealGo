@@ -15,6 +15,7 @@ const DetailScreen = () => {
   const [selectedItem, setSelectedItem] = useState<any>(null);
   const { showLoader, hideLoader, isLoading} =useLoader()
   const [cart, setCard] = useState<boolean>(true)
+  
 
   const router = useRouter()
 
@@ -26,15 +27,15 @@ const DetailScreen = () => {
 
   const findItem = async () => {
     try {
-      showLoader
+      showLoader()
       const item = await findById(id as string);
       setSelectedItem(item);
       isAdd(id as String)
     } catch (error) {
-      hideLoader
+      hideLoader()
       console.error("Error fetching item:", error);
     } finally {
-      hideLoader
+      hideLoader()
     }
   };
 
@@ -54,10 +55,15 @@ const DetailScreen = () => {
       return
     }
     try {
+      showLoader()
       await addToCart(selectedItem.id)
       Alert.alert("Success", "Item added to cart! 🎉");
     } catch (error) {
+      hideLoader()
+      console.error("Error adding item to cart:", error);
       Alert.alert("Error", "Failed to add item to cart.");
+    } finally {
+      hideLoader()
     }
   }
   
@@ -163,6 +169,22 @@ const DetailScreen = () => {
 
         <TouchableOpacity 
           className="flex-1 bg-black h-16 ml-4 rounded-2xl items-center justify-center shadow-lg shadow-black"
+          onPress={() => {
+            if (!selectedItem || selectedItem.length === 0) {
+              console.error("Cart is empty in orderService!");
+              throw new Error("Cannot place order with an empty cart");
+            }
+            router.push({
+                pathname: "/(ui)/CheckoutScreen",
+                params: {
+                  Foods: JSON.stringify(selectedItem),
+                  subtotal: 1,
+                  qty: 1,
+                  delivery: 250,
+                  total: Number(selectedItem.price) + 250
+                }})
+              }}
+           
         >
           <Text className="text-white font-black text-lg">Buy Now</Text>
         </TouchableOpacity>
