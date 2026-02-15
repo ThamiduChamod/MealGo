@@ -1,4 +1,4 @@
-import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore"
+import { collection, deleteDoc, doc, getDoc, getDocs, query, where } from "firebase/firestore"
 import { auth, db } from "./firebase"
 import { findById } from "./itemService"
 import { useState } from "react";
@@ -43,3 +43,11 @@ export const loadCartId = async ()=>{
 
 }
 
+export const deleteCartItem = async (cart_id: string) =>{
+    try {
+        const docRef = await doc(db, "cart", cart_id)
+        await deleteDoc(docRef)
+    } catch (error) {
+        throw new Error("Failed to delete cart item: " + error)
+    }
+}
