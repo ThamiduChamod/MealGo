@@ -11,12 +11,14 @@ export default function index() {
       <View className="flex-1 justify-center items-center bg-gray-50">
         <ActivityIndicator size="large" color="#4ade80" />
       </View>
+      // <Redirect href="/home" />
     )
   }
 
   if (user) {
-    return <Redirect href="/home" />
+    return <Redirect href="/(dashboard)/home" />
   } else {
     return <Redirect href="/login" />
   }
+  // return <Redirect href="/home" />
 }
